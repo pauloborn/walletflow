@@ -1,0 +1,2 @@
+pynubank~=2.21.0
+apache-airflow==2.4.1
