@@ -1,9 +1,8 @@
 import unittest
-import tempfile
 import os
 
-from walletflow.dags.common_package.config.Configuration import Configuration, Config
-from walletflow.dags.common_package.misc.TempWritableFile import TempWritableFile
+from walletflow.dags.lazyutils.config.Configuration import Configuration, Config
+from walletflow.dags.lazyutils.file.TempWritableFile import TempWritableFile
 
 
 def config_template() -> str:

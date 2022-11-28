@@ -1,6 +1,6 @@
 import unittest
 
-from walletflow.dags.common_package.structure.Singleton import Singleton
+from walletflow.dags.lazyutils.structure.Singleton import Singleton
 
 
 class DummySingleton(Singleton):
@@ -12,9 +12,6 @@ class DummySingleton(Singleton):
     @property
     def creations(self):
         return self._count_creation_attempts
-
-    def reset(self):
-        self._reset()
 
 
 class SingletonTest(unittest.TestCase):
