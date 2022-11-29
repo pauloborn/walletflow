@@ -3,6 +3,8 @@ import logging
 import pandas as pd
 from datetime import datetime, timedelta
 from pynubank import Nubank, MockHttpClient
+
+from walletflow.dags.custom_dags.finance.commons import NuCommons
 from walletflow.dags.lazyutils.misc import Dates
 from walletflow.dags.lazyutils.config.Configuration import Config
 from walletflow.dags.lazyutils.persistance.IPersistance import PersistanceFactory, PersistanceLayer
@@ -10,7 +12,6 @@ from walletflow.dags.lazyutils.secrets.ISecrets import SecretsFactory, Secrets
 
 
 class NubankCrawler:
-    #TODO Implement to get from configuration file
     last_days: int = None
     nu: Nubank = None
     config = None
@@ -27,7 +28,7 @@ class NubankCrawler:
 
         logging.info(f'Found {df.count()} rows from card statements from last {self.last_days} days')
 
-        self.persistance.save(prefix="nubank-card-statements", karg=card_statements)
+        self.persistance.save(prefix=NuCommons.CARD_STATEMENTS, karg=df)
         return df
 
     def get_account_feed(self):
@@ -40,7 +41,7 @@ class NubankCrawler:
 
         while has_next:
             feed = self.nu.get_account_feed_paginated(cursor)
-            self.persistance.save(f'nubank-account-feed-page_{idx}', feed)
+            self.persistance.save(f'{NuCommons.ACCOUNT_FEED}-page_{idx}', feed)
             logging.debug(f'Got {len(feed["edges"])} nodes expenses from account')
 
             cursor = feed['edges'][-1]['cursor']
@@ -57,7 +58,7 @@ class NubankCrawler:
 
     def run(self):
         self.get_card_events()
-        self.get_account_feed()
+        # self.get_account_feed()
 
     def __init__(self):
         self.config = Config(os.path.join(os.getcwd(), 'config', 'config.ini'))  # Initialize logging handler also
@@ -65,6 +66,8 @@ class NubankCrawler:
         self.last_days = self.config['Nubank']['since']
         if self.last_days == 'None':
             self.last_days = None
+        else:
+            self.last_days = int(self.last_days)
 
         if self.config['Core']['environment'] == 'dev':
             self.nu = Nubank(MockHttpClient())
@@ -78,14 +81,8 @@ class NubankCrawler:
             secrets.nubank['cert']
         )
 
-        self.persistance = PersistanceFactory(PersistanceLayer.LOCAL)
+        self.persistance = PersistanceFactory(PersistanceLayer.LOCAL, self.config['Core']['landing_layer_folder'])
 
 
 if __name__ == '__main__':
     NubankCrawler().run()
-
-def dummy():
-    # from walletflow.dags.custom_dags.finance.crawler.NubankCrawler import *
-    nucrawler = NubankCrawler()
-    nucrawler.last_days = 800
-    nucrawler.run()

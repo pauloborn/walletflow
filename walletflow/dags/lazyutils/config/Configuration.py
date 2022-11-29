@@ -39,10 +39,7 @@ class Configuration(Singleton):
 
         return not_found
 
-    def reset(self):
-        self._reset()
-        self.__init__()
-
 
 def Config(filepath: str = ''):
-    return Configuration(filepath).config
+    c = Configuration() if filepath == '' else Configuration(filepath)
+    return c.config

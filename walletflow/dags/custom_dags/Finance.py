@@ -11,6 +11,9 @@ from airflow.operators.python import PythonOperator
 # internal libs
 from sqlalchemy_utils.types.enriched_datetime.pendulum_date import pendulum
 
+from walletflow.dags.custom_dags.finance.crawler.NubankCrawler import NubankCrawler
+from walletflow.dags.custom_dags.finance.normalize.NubankNormalize import NubankNormalize
+
 
 def dummy_fn():
     return ''
@@ -48,11 +51,19 @@ finance_dag = DAG(
     default_args=default_args
 )
 
+nucrawler = NubankCrawler()
 nubank_crawler = PythonOperator(
-                task_id='parse_log',
-                python_callable=dummy_fn,
-                op_kwargs={'outfile_path': nubank_filename},
-                dag=finance_dag)
+    task_id='nubank_crawler',
+    python_callable=nucrawler.run(),
+    dag=finance_dag
+)
+
+nunormalize = NubankNormalize()
+nubank_normalize = PythonOperator(
+    task_id='nubank_normalize',
+    python_callable=nunormalize.run(),
+    dag=finance_dag
+)
 
 dummy = EmptyOperator(task_id="nothing")
 
