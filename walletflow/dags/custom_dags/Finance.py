@@ -12,7 +12,7 @@ from airflow.operators.python import PythonOperator
 from sqlalchemy_utils.types.enriched_datetime.pendulum_date import pendulum
 
 from walletflow.dags.custom_dags.finance.crawler.NubankCrawler import NubankCrawler
-from walletflow.dags.custom_dags.finance.normalize.NubankNormalize import NubankNormalize
+from walletflow.dags.custom_dags.finance.normalize.Normalize import NubankNormalize
 
 
 def dummy_fn():

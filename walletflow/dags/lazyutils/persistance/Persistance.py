@@ -1,3 +1,5 @@
+from typing import Any, List
+
 import pandas as pd
 
 
@@ -8,6 +10,9 @@ class Persistance:
         return self._save_map[type(karg)](prefix, karg)
 
     def _save_dict(self, prefix: str, obj: dict):
+        raise NotImplementedError
+
+    def _save_list(self, prefix: str, obj: list):
         raise NotImplementedError
 
     def _save_dataframe(self, prefix: str, df: pd.DataFrame):
@@ -28,8 +33,12 @@ class Persistance:
     def getfilecontent(self, file: str):
         raise NotImplementedError
 
+    def mark_as_processed_files(self, files: List[str]):
+        raise NotImplementedError
+
     def __init__(self):
         self._save_map = {
             pd.DataFrame: self._save_dataframe,
-            dict: self._save_dict
+            dict: self._save_dict,
+            list: self._save_list
         }

@@ -58,7 +58,7 @@ class NubankCrawler:
 
     def run(self):
         self.get_card_events()
-        # self.get_account_feed()
+        # self.get_account_feed() TODO Change it
 
     def __init__(self):
         self.config = Config(os.path.join(os.getcwd(), 'config', 'config.ini'))  # Initialize logging handler also
