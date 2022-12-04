@@ -7,9 +7,10 @@ from walletflow.dags.custom_dags.finance.normalize.nubank.NubankAccount import a
 from walletflow.dags.lazyutils.config.Configuration import Config
 from walletflow.dags.lazyutils.persistance.IPersistance import PersistanceFactory, PersistanceLayer
 from walletflow.dags.custom_dags.finance.normalize.nubank.NubankCard import card_events_processor
+from walletflow.dags.lazyutils.structure.Callable import Callable
 
 
-class Normalize:
+class Normalize(Callable):
     _landing = None
     _stage = None
 

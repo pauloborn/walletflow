@@ -38,7 +38,7 @@ def account_statement_mapper(o: dict) -> CashEvent:
     status = TransactionStatus.CONFIRMED if not obj['strikethrough'] else TransactionStatus.REVERSED
     tm = conditional_strptime(obj['postDate'], ['%Y-%m-%d'])
 
-    transaction_channel_name = obj['detail'].split('\nR$')[0] #TODO To test, it can not work well
+    transaction_channel_name = obj['detail'].split('\nR$')[0]
     tags_by_title_map = CashMap().tags_map
     tags = []
     if transaction_channel_name in tags_by_title_map:

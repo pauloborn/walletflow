@@ -12,7 +12,7 @@ from airflow.operators.python import PythonOperator
 from sqlalchemy_utils.types.enriched_datetime.pendulum_date import pendulum
 
 from walletflow.dags.custom_dags.finance.crawler.NubankCrawler import NubankCrawler
-from walletflow.dags.custom_dags.finance.normalize.Normalize import NubankNormalize
+from walletflow.dags.custom_dags.finance.normalize.Normalize import Normalize
 
 
 def dummy_fn():
@@ -54,19 +54,17 @@ finance_dag = DAG(
 nucrawler = NubankCrawler()
 nubank_crawler = PythonOperator(
     task_id='nubank_crawler',
-    python_callable=nucrawler.run(),
+    python_callable=nucrawler,
     dag=finance_dag
 )
 
-nunormalize = NubankNormalize()
-nubank_normalize = PythonOperator(
+normalize = Normalize()
+normalize_operator = PythonOperator(
     task_id='nubank_normalize',
-    python_callable=nunormalize.run(),
+    python_callable=normalize,
     dag=finance_dag
 )
 
-dummy = EmptyOperator(task_id="nothing")
-
-nubank_crawler >> dummy
+nubank_crawler >> normalize_operator
 
 logging.debug('Ended Dag configuration')

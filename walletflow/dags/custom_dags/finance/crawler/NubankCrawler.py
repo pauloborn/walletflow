@@ -9,9 +9,10 @@ from walletflow.dags.lazyutils.misc import Dates
 from walletflow.dags.lazyutils.config.Configuration import Config
 from walletflow.dags.lazyutils.persistance.IPersistance import PersistanceFactory, PersistanceLayer
 from walletflow.dags.lazyutils.secrets.ISecrets import SecretsFactory, Secrets
+from walletflow.dags.lazyutils.structure.Callable import Callable
 
 
-class NubankCrawler:
+class NubankCrawler(Callable):
     last_days: int = None
     nu: Nubank = None
     config = None
@@ -58,7 +59,7 @@ class NubankCrawler:
 
     def run(self):
         self.get_card_events()
-        # self.get_account_feed() TODO Change it
+        self.get_account_feed()
 
     def __init__(self):
         self.config = Config(os.path.join(os.getcwd(), 'config', 'config.ini'))  # Initialize logging handler also
