@@ -6,6 +6,7 @@ from walletflow.dags.lazyutils.persistance.Local import LocalLayerStorage
 class PersistanceLayer(Enum):
     LOCAL = auto()
     AWS_S3 = auto()
+    RBDMS = auto()
 
 
 # TODO Implement unit tests

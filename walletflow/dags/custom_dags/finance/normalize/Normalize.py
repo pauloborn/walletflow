@@ -42,7 +42,7 @@ class Normalize(Callable):
         logging.debug([str(evt) for evt in cash_events])
 
     def __init__(self):
-        self.config = Config()
+        self.config = Config('./config/config.ini')
 
         self._landing = \
             PersistanceFactory(PersistanceLayer.LOCAL, self.config['Core']['landing_layer_folder'])

@@ -42,11 +42,12 @@ def account_statement_mapper(o: dict) -> CashEvent:
     tags_by_title_map = CashMap().tags_map
     tags = []
     if transaction_channel_name in tags_by_title_map:
-        tags.append(tags_by_title_map[transaction_channel_name])
+        tags = tags_by_title_map[transaction_channel_name]
 
     t, source = source_type_map(obj)
 
     return CashEvent(
+        original_id=obj['id'],
         title=transaction_channel_name,
         category='' if len(tags) < 1 else tags[0],
         amount=amount,
@@ -54,7 +55,6 @@ def account_statement_mapper(o: dict) -> CashEvent:
         status=status,
         time=tm,
         source=source,
-        tags=tags,
         type=t,
         original_json=o
     )

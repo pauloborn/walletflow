@@ -65,8 +65,8 @@ class LocalLayerStorage(Persistance, ABC):
         jlist = []
 
         for f in onlyfiles:
-            with open(f) as file:
-                jlist.append(json.load(file))
+            with open(join(self._layer, f)) as file:
+                jlist.append(file.read())
 
         return jlist
 

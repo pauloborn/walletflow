@@ -68,3 +68,6 @@ normalize_operator = PythonOperator(
 nubank_crawler >> normalize_operator
 
 logging.debug('Ended Dag configuration')
+
+# TODO Fix to work inside Airflow, isn't working and the ideal is to not use the same folder as Airflow dags
+#  Just include in Airflow PythonPath Directory to switch places

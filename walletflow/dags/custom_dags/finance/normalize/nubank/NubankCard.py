@@ -1,6 +1,6 @@
 from typing import List
 
-from walletflow.dags.custom_dags.finance.normalize.cash_events import Type, CashEvent, CashMap, TransactionStatus
+from walletflow.dags.custom_dags.finance.normalize.cash_events import Type, CashEvent, TransactionStatus
 from walletflow.dags.lazyutils.misc.Dates import conditional_strptime
 
 
@@ -36,14 +36,10 @@ def card_statements_mapper(o: dict) -> CashEvent:
     amount_without_taxes = (float(o['amount_without_iof']) / 100) if o['amount_without_iof'] is not None else 0.0
 
     transaction_channel_name = o['description']
-    tags = [category]
-    tags_by_title_map = CashMap().tags_map
     tm = conditional_strptime(o['time'], ['%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S.%fZ'])
 
-    if transaction_channel_name in tags_by_title_map:
-        tags.append(tags_by_title_map[transaction_channel_name])
-
     return CashEvent(
+        original_id=o['id'],
         title=transaction_channel_name,
         category=category,
         amount=amount,
@@ -51,7 +47,6 @@ def card_statements_mapper(o: dict) -> CashEvent:
         status=status,
         time=tm,
         source='Card transaction',
-        tags=tags,
         type=expensetype,
         original_json=o
     )
