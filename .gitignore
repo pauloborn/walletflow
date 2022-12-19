@@ -1,9 +1,9 @@
 /.secrets/secrets.json
 /config/config.ini
-/.localdata/
+/.data/.localdata/
 /dags/
 /logs/
 /plugins/
-/cert.p12
+/.secrets/cert.p12
 /.idea/
-/data/metdb/
+/.data/metdb/

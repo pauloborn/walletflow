@@ -5,4 +5,4 @@ $Network = "walletflow_default"
 echo $Network
 
 
-docker run --rm --network $Network --volume "${PSScriptRoot}\walletflow:/opt/airflow" apache/airflow @Args
+docker run --rm --network $Network --volume "${PSScriptRoot}\airflow:/opt/airflow" apache/airflow @Args

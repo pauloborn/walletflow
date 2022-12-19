@@ -6,6 +6,7 @@ Create Date: 2022-12-04 15:47:30.090953
 
 """
 from alembic import op
+from sqlalchemy.sql import text
 import sqlalchemy as sa
 
 
@@ -33,6 +34,13 @@ def upgrade() -> None:
         sa.Column('original_json', sa.JSON(), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
+
+    op.get_bind().execute(text(
+        """
+        CREATE USER superset WITH ENCRYPTED PASSWORD 'superset';
+        GRANT SELECT ON ALL TABLES IN SCHEMA public TO superset;
+        """
+    ))
 
 
 def downgrade() -> None:

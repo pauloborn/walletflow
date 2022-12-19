@@ -45,56 +45,73 @@ x-airflow-common:
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose-complete.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:latest}
-  # build: .
+  build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_metadb/airflow
     # For backward compatibility, with Airflow <2.3
-    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
-    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow_postgres/airflow
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_metadb/airflow
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow_metadb/airflow
     AIRFLOW__CELERY__BROKER_URL: redis://:@airflow_redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     PYTHONASYNCIODEBUG: 1
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    CONFIG_PATH: /
+    #_PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+
   volumes:
-    - "./walletflow:/opt/airflow"
+    - "./airflow:/opt/airflow"
+    - "./walletflow:/custom_modules/walletflow"
+    - "./config:/config"
+    - "./.secrets:/.secrets"
+    - "./database:/database"
+
   user: "${AIRFLOW_UID:-50000}:0"
+
   depends_on:
     &airflow-common-depends-on
     redis:
+      condition: service_healthy
+    metadb:
       condition: service_healthy
     postgres:
       condition: service_healthy
 
 services:
   postgres:
-    image: postgres:13
-    container_name: airflow_postgres
+    image: postgres:15.1
+    container_name: postgres_15
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      POSTGRES_DB: finance
+    ports:
+      - 5432:5432
     volumes:
-      - postgres-db-volume://c//Users//paulo//Development//walletflow//data//postgres
+      - ${CONTAINER_STORAGE_PATH}/postgres_15:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
+      test: ["CMD", "pg_isready", "-U", "airflow", "-d", "finance"]
       interval: 5s
       retries: 5
     restart: always
 
   metadb:
     image: postgres:13
+    container_name: airflow_metadb
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
     restart: unless-stopped
     volumes:
-      - ./data/metdb:/var/lib/postgresql/data
+      - ${CONTAINER_STORAGE_PATH}/metadb:/var/lib/postgresql/data
 
   redis:
     image: redis:latest
@@ -110,7 +127,9 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
-    command: webserver
+    command:
+      - webserver
+
     ports:
       - 8080:8080
     healthcheck:
@@ -242,18 +261,19 @@ services:
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins
         chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+
         exec /entrypoint airflow version
+
     # yamllint enable rule:line-length
     environment:
       <<: *airflow-common-env
       _AIRFLOW_DB_UPGRADE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
-      _PIP_ADDITIONAL_REQUIREMENTS: ''
+      _AIRFLOW_WWW_USER_USERNAME: airflow
+      _AIRFLOW_WWW_USER_PASSWORD: airflow
     user: "0:0"
     volumes:
-      - .:/sources
+      - ./airflow:/sources
 
   airflow-cli:
     <<: *airflow-common
@@ -267,27 +287,3 @@ services:
       - bash
       - -c
       - airflow
-
-  # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
-  # or by explicitly targeted on the command line e.g. docker-compose up flower.
-  # See: https://docs.docker.com/compose/profiles/
-  flower:
-    <<: *airflow-common
-    command: celery flower
-    profiles:
-      - flower
-    ports:
-      - 5555:5555
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-    restart: always
-    depends_on:
-      <<: *airflow-common-depends-on
-      airflow-init:
-        condition: service_completed_successfully
-
-volumes:
-  postgres-db-volume:
